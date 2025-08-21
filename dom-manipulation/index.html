@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dynamic Quote Generator — Filter + Sync</title>
+  <title>Dynamic Quote Generator — Sync + Conflicts</title>
   <style>
     :root{
-      --bg:#f7f7f8; --card:#fff; --text:#222; --muted:#666;
-      --border:#e5e7eb; --accent:#2563eb; --accent-hover:#1d4ed8;
-      --danger:#dc2626; --danger-hover:#b91c1c; --ok:#059669; --warn:#d97706;
+      --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --border:#e2e8f0; --accent:#2563eb; --accent-hover:#1d4ed8;
+      --danger:#dc2626; --danger-hover:#b91c1c; --ok:#10b981; --warn:#f59e0b;
     }
     *{box-sizing:border-box}
     body{
@@ -16,15 +16,11 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       display:flex; flex-direction:column; align-items:center; gap:16px;
     }
-    h1{margin:0}
-    .container{
-      width:min(900px, 95vw);
-      display:flex; flex-direction:column; gap:14px;
-    }
-    .card{
-      background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px;
-    }
-    .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+    .container{ width:min(920px, 95vw); display:flex; flex-direction:column; gap:14px; }
+    h1{ margin:0; }
+    .muted{ color:var(--muted); }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     select, input[type="text"], input[type="file"]{
       padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:#fff;
     }
@@ -33,51 +29,43 @@
       background:var(--accent);
     }
     button:hover{ background:var(--accent-hover); }
-    .btn-danger{ background:var(--danger); }
-    .btn-danger:hover{ background:var(--danger-hover); }
-    .btn-ok{ background:var(--ok); }
-    .btn-warn{ background:var(--warn); }
-    .muted{ color:var(--muted); }
+    .btn-danger{ background:var(--danger); } .btn-danger:hover{ background:var(--danger-hover); }
+    .btn-ok{ background:var(--ok); } .btn-warn{ background:var(--warn); color:#111827; }
     #quoteDisplay{
       font-style:italic; font-size:1.05rem; text-align:center;
       padding:12px; border:2px dashed var(--border); border-radius:12px; background:#fff;
     }
     ul#quoteList{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
-    .quote-item{
-      border:1px solid var(--border); border-radius:10px; padding:12px; background:#fff;
-      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
-    }
+    .quote-item{ border:1px solid var(--border); border-radius:10px; padding:12px; background:#fff;
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
     .quote-text{ font-style:italic; }
     .quote-meta{ font-size:.9rem; color:var(--muted); }
     .notice{ display:none; padding:10px 12px; border-radius:8px; }
     .notice.show{ display:block; }
+    .notice.info{ background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
     .notice.ok{ background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
     .notice.warn{ background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
-    .notice.info{ background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
     .conflicts{ display:none; }
     .conflicts.show{ display:block; }
-    .conflict-item{
-      border:1px solid var(--border); border-radius:10px; padding:10px; margin-top:10px; background:#fff;
-    }
+    .conflict-item{ border:1px solid var(--border); border-radius:10px; padding:12px; margin-top:10px; background:#fff; }
     .form-container .row input{ flex:1 1 240px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Dynamic Quote Generator</h1>
-    <div class="muted">Filtering + Web Storage + JSON Import/Export + Server Sync (with conflict resolution) ✔️</div>
+    <div class="muted">Filtering + Web Storage + Server Sync (JSONPlaceholder) with conflict resolution ✔️</div>
 
-    <!-- Notice / Sync messages -->
-    <div id="notice" class="notice info card"></div>
+    <!-- Notices -->
+    <div id="notice" class="notice card info"></div>
 
     <!-- Controls -->
     <div class="card">
       <div class="row">
         <label for="categoryFilter" class="muted">Filter by Category:</label>
-        <!-- per requirement: inline onchange hook -->
+        <!-- per requirement: inline onchange -->
         <select id="categoryFilter" onchange="filterQuotes()">
           <option value="all">All Categories</option>
-          <!-- categories added dynamically -->
         </select>
 
         <button id="btnRandom">Show Random Quote</button>
@@ -85,14 +73,10 @@
         <button id="btnToggleConflicts" class="btn-warn">Conflicts (0)</button>
         <button id="btnClear" class="btn-danger">Clear All Quotes</button>
       </div>
-      <div class="row">
-        <input type="file" id="importFile" accept=".json" />
-        <button id="btnExport">Export Quotes (JSON)</button>
-      </div>
     </div>
 
     <!-- Current random display -->
-    <div id="quoteDisplay" class="card">Click “Show Random Quote” or choose a category.</div>
+    <div id="quoteDisplay" class="card">Choose a category or click “Show Random Quote”.</div>
 
     <!-- Filtered list -->
     <div class="card">
@@ -100,7 +84,7 @@
       <ul id="quoteList"></ul>
     </div>
 
-    <!-- Add Quote Form (built dynamically by JS to satisfy earlier checker) -->
+    <!-- Add Quote Form (created dynamically by JS) -->
     <div id="addFormMount"></div>
 
     <!-- Conflicts panel -->
