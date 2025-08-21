@@ -95,7 +95,6 @@ function populateCategories() {
   categoryFilter.value = (saved === "all" || categories.includes(saved)) ? saved : "all";
 }
 
-/** Filter function (uses selectedCategory variable explicitly) */
 function filterQuotes() {
   const selectedCategory = categoryFilter.value;
   saveLastFilter(selectedCategory);
@@ -175,8 +174,17 @@ function addQuote() {
   };
   if (quotes.some(q => k(q) === k(newQ))) { alert("That exact quote already exists."); return; }
 
-  quotes.push(newQ); saveQuotes(); populateCategories(); renderQuoteList(categoryFilter.value);
-  textEl.value = ""; catEl.value = ""; showNotice("Quote added ✔️", "ok");
+  quotes.push(newQ);
+  saveQuotes();
+  populateCategories();
+  renderQuoteList(categoryFilter.value);
+
+  // 🚀 POST new quote to server
+  postQuoteToServer(newQ);
+
+  textEl.value = "";
+  catEl.value = "";
+  showNotice("Quote added ✔️", "ok");
 }
 
 /** ---------- Dynamic Add Quote Form ---------- */
@@ -196,7 +204,6 @@ function createAddQuoteForm() {
 }
 
 /** ---------- Server Sync & Conflict Resolution ---------- */
-/** REQUIRED function name: fetchQuotesFromServer */
 async function fetchQuotesFromServer() {
   const res = await fetch(SERVER_ENDPOINT);
   const posts = await res.json();
@@ -209,6 +216,32 @@ async function fetchQuotesFromServer() {
     updatedAt: new Date().toISOString(),
     synced: true
   }));
+}
+
+/** ---------- POST to Server ---------- */
+async function postQuoteToServer(quote) {
+  try {
+    const response = await fetch(SERVER_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title: quote.text,
+        body: quote.category,
+        userId: 1
+      })
+    });
+
+    const data = await response.json();
+    console.log("Posted to server:", data);
+    showNotice("Quote synced with server ✔️", "ok");
+    return data;
+  } catch (err) {
+    console.error("Error posting quote:", err);
+    showNotice("Failed to sync with server ❌", "warn");
+    return null;
+  }
 }
 
 function detectConflicts(localArr, serverArr) {
@@ -244,4 +277,46 @@ function renderConflicts() {
     wrap.innerHTML = `
       <div><b>ID:</b> ${c.id}</div>
       <div style="margin-top:6px;"><b>Server:</b> “${c.server.text}” <i>(${c.server.category})</i></div>
-      <div><b>Local:</b> “${c.local.text}” <i>(${c.local.category})</i></div>
+      <div><b>Local:</b> “${c.local.text}” <i>(${c.local.category})</i></div>`;
+    conflictsList.appendChild(wrap);
+  }
+}
+
+/** ---------- Sync Process ---------- */
+async function syncWithServer() {
+  try {
+    const serverQuotes = await fetchQuotesFromServer();
+    conflicts = detectConflicts(quotes, serverQuotes);
+    renderConflicts();
+    quotes = applyServerWins(quotes, serverQuotes);
+    saveQuotes(); populateCategories(); renderQuoteList(categoryFilter.value);
+    showNotice("Sync complete ✔️", "ok");
+  } catch (err) {
+    console.error(err);
+    showNotice("Sync failed ❌", "warn");
+  }
+}
+
+/** ---------- Init ---------- */
+function init() {
+  loadQuotes();
+  populateCategories();
+  renderQuoteList();
+  createAddQuoteForm();
+  const last = loadLastQuote(); if (last) quoteDisplay.textContent = `“${last.text}” — ${last.category}`;
+
+  btnRandom.addEventListener("click", showRandomQuote);
+  btnSync.addEventListener("click", syncWithServer);
+  btnToggleConflicts.addEventListener("click", () => {
+    conflictsPanel.classList.toggle("show");
+  });
+  btnClear.addEventListener("click", () => {
+    if (confirm("Clear all quotes?")) {
+      quotes = []; saveQuotes(); populateCategories(); renderQuoteList();
+      showNotice("All quotes cleared ❌", "warn");
+    }
+  });
+
+  setInterval(syncWithServer, SYNC_INTERVAL_MS);
+}
+init();
