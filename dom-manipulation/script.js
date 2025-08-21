@@ -283,7 +283,7 @@ function renderConflicts() {
 }
 
 /** ---------- Sync Process ---------- */
-async function syncWithServer() {
+async function syncQuotes() {
   try {
     const serverQuotes = await fetchQuotesFromServer();
     conflicts = detectConflicts(quotes, serverQuotes);
@@ -306,7 +306,7 @@ function init() {
   const last = loadLastQuote(); if (last) quoteDisplay.textContent = `“${last.text}” — ${last.category}`;
 
   btnRandom.addEventListener("click", showRandomQuote);
-  btnSync.addEventListener("click", syncWithServer);
+  btnSync.addEventListener("click", syncQuotes);
   btnToggleConflicts.addEventListener("click", () => {
     conflictsPanel.classList.toggle("show");
   });
@@ -317,6 +317,6 @@ function init() {
     }
   });
 
-  setInterval(syncWithServer, SYNC_INTERVAL_MS);
+  setInterval(syncQuotes, SYNC_INTERVAL_MS);
 }
 init();
