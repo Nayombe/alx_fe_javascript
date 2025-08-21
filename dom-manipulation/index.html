@@ -1,74 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dynamic Quote Generator</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 20px;
-      background: #f9f9f9;
+    :root{
+      --bg:#f9f9f9;
+      --card:#ffffff;
+      --text:#333;
+      --muted:#666;
+      --accent:#4CAF50;
+      --accent-hover:#45a049;
+      --border:#ddd;
+      --danger:#e74c3c;
+      --danger-hover:#c0392b;
     }
-    h1 {
-      color: #333;
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      margin:0;
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:16px;
     }
-    #quoteDisplay {
-      margin: 20px auto;
-      padding: 15px;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      width: 60%;
-      background: white;
-      font-size: 18px;
-      font-style: italic;
-      min-height: 60px;
+    h1{margin:0 0 6px 0}
+    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center}
+    #quoteDisplay{
+      width:min(820px, 95vw);
+      min-height:70px;
+      padding:16px 18px;
+      border:2px solid var(--border);
+      border-radius:12px;
+      background:var(--card);
+      font-size:1.1rem;
+      font-style:italic;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
     }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      background: #4CAF50;
-      color: white;
+    select, input[type="text"], input[type="file"]{
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:#fff;
+      min-width:200px;
     }
-    button:hover {
-      background: #45a049;
+    button{
+      padding:10px 14px;
+      border:none;
+      border-radius:8px;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      transition:background .15s ease;
     }
-    input {
-      padding: 8px;
-      margin: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      width: 200px;
+    button:hover{ background:var(--accent-hover); }
+    .btn-danger{
+      background:var(--danger);
     }
-    select {
-      padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+    .btn-danger:hover{ background:var(--danger-hover); }
+    .muted{ color:var(--muted); font-size:.92rem; }
+    .form-container{
+      width:min(820px, 95vw);
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
     }
-    .form-container {
-      margin-top: 20px;
+    .form-container h3{ margin:0 0 8px 0; }
+    .stack{ display:flex; flex-wrap:wrap; gap:8px; }
+    .toolbar{
+      width:min(820px, 95vw);
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
     }
   </style>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
+  <div class="muted">Now with Local Storage, Session Storage, and JSON import/export ✔️</div>
 
-  <!-- Quote Display -->
-  <div id="quoteDisplay">Click "Show New Quote" to begin!</div>
+  <!-- Quote display -->
+  <div id="quoteDisplay">Click “Show New Quote” to begin!</div>
 
-  <!-- Category Selection -->
-  <div>
-    <label for="categorySelect">Choose Category:</label>
+  <!-- Category + controls -->
+  <div class="row">
+    <label for="categorySelect" class="muted">Category:</label>
     <select id="categorySelect"></select>
     <button id="newQuote">Show New Quote</button>
   </div>
+
+  <!-- Import / Export / Clear toolbar -->
+  <div class="toolbar">
+    <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
+    <button id="exportBtn">Export Quotes (JSON)</button>
+    <button id="clearBtn" class="btn-danger">Clear All Quotes</button>
+  </div>
+
+  <!-- The Add Quote form is created dynamically by script.js (createAddQuoteForm) -->
+
   <script src="script.js"></script>
 </body>
 </html>
-
-
-
