@@ -290,7 +290,9 @@ async function syncQuotes() {
     renderConflicts();
     quotes = applyServerWins(quotes, serverQuotes);
     saveQuotes(); populateCategories(); renderQuoteList(categoryFilter.value);
-    showNotice("Sync complete ✔️", "ok");
+
+    // ✅ Explicitly include required message
+    showNotice("Quotes synced with server!", "ok");
   } catch (err) {
     console.error(err);
     showNotice("Sync failed ❌", "warn");
